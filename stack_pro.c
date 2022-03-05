@@ -1,4 +1,3 @@
-#include "stdio.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -9,6 +8,7 @@
     _Generic(((type) 0),    \
     int:     "%d",          \
     double:  "%f",          \
+    unsigned: "%u",         \
     default: "%f"           \
 )
 
@@ -43,38 +43,42 @@ void stack_dump_##type (MAKE_NAME(Stack_, type)* stk, int, int, const char*, con
 int is_stack_spoiled_##type (MAKE_NAME(Stack_, type)* stk);                                 \
 void DragonHash_##type (MAKE_NAME(Stack_, type)* stk);                                      \
 
-          
 
 
 
-#define DragonHash(stk_ptr)     \
-    _Generic( ((*stk_ptr).data),\
-    int*: DragonHash_int,       \
-    double*: DragonHash_double, \
-    default: DragonHash_int     \
+
+#define DragonHash(stk_ptr, ...)    \
+    _Generic( ((*stk_ptr).data),    \
+    int*: DragonHash_int,           \
+    double*: DragonHash_double,     \
+    unsigned*:DragonHash_unsigned,  \
+    default: DragonHash_int         \
 )(stk_ptr)
 
-#define stack_init(stk_ptr, ...)\
-    _Generic( ((*stk_ptr).data),\
-    int*: stack_init_int,       \
-    double*: stack_init_double, \
-    default: stack_init_double  \
+#define stack_init(stk_ptr, ...)    \
+    _Generic( ((*stk_ptr).data),    \
+    int*: stack_init_int,           \
+    double*: stack_init_double,     \
+    unsigned*:stack_init_unsigned,  \
+    default: stack_init_double      \
 )(stk_ptr, __VA_ARGS__)
 
 
-#define stack_pop(stk_ptr, ...) \
-    _Generic( ((*stk_ptr).data),\
-    int*: stack_pop_int,        \
-    double*: stack_pop_double,  \
-    default: stack_pop_double   \
+#define stack_pop(stk_ptr, ...)     \
+    _Generic( ((*stk_ptr).data),    \
+    int*: stack_pop_int,            \
+    double*: stack_pop_double,      \
+    unsigned*:stack_pop_unsigned,   \
+    default: stack_pop_double       \
 )(stk_ptr, __VA_ARGS__)
 
 
 
-#define stack_resize(stk_ptr)       \
+#define stack_resize(stk_ptr, ...)  \
     _Generic( ((*stk_ptr).data),    \
     int*: stack_resize_int,         \
     double*: stack_resize_double,   \
+    unsigned*:stack_resize_unsigned,\
     default: stack_resize_int       \
 )(stk_ptr)
 
@@ -82,8 +86,9 @@ void DragonHash_##type (MAKE_NAME(Stack_, type)* stk);                          
     _Generic( ((*stk_ptr).data),    \
     int*: stack_dtor_int,           \
     double*: stack_dtor_double,     \
+    unsigned*:stack_dtor_unsigned,  \
     default: stack_dtor_int         \
-)(stk_ptr, __VA_ARGS__)
+)(stk_ptr)
 
 
 
@@ -91,25 +96,28 @@ void DragonHash_##type (MAKE_NAME(Stack_, type)* stk);                          
     _Generic( ((*stk_ptr).data),    \
     int*: stack_push_int,           \
     double*: stack_push_double,     \
+    unsigned*:stack_push_unsigned,  \
     default: stack_push_double      \
 )(stk_ptr, __VA_ARGS__)
 
 
 
-#define is_stack_spoiled(stk_ptr)       \
+#define is_stack_spoiled(stk_ptr, ...)  \
     _Generic( ((*stk_ptr).data),        \
     int*: is_stack_spoiled_int,         \
     double*: is_stack_spoiled_double,   \
+    unsigned*:is_stack_spoiled_unsigned,\
     default: is_stack_spoiled_int       \
 )(stk_ptr)
 
 
 
-#define stack_dump(stk_ptr, ...)\
-    _Generic( ((*stk_ptr).data),\
-    int*: stack_dump_int,       \
-    double*: stack_dump_double, \
-    default*: stack_dump_int    \
+#define stack_dump(stk_ptr, ...)    \
+    _Generic( ((*stk_ptr).data),    \
+    int*: stack_dump_int,           \
+    double*: stack_dump_double,     \
+    unsigned*:stack_dump_unsigned,  \
+    default*: stack_dump_int        \
 )(stk_ptr, __VA_ARGS__)
 
 
@@ -431,8 +439,12 @@ int stack_push_##type(MAKE_NAME(Stack_, type)* stk, type element)           \
 //=======================================================================
 FORMATE(int);
 MAKE_STACK(int);
+
 FORMATE(double);
 MAKE_STACK(double);
+
+FORMATE(unsigned);
+MAKE_STACK(unsigned);
 
 
 
@@ -440,39 +452,51 @@ int main(void)
 {
     Stack_int a = {};
     Stack_double b = {};
-    
-    
+
+
     stack_init(&b, 2);
     stack_init(&a, 2);
-    
+
     int flora = 11;
-    
+
     stack_push(&a, 18);
     stack_push(&a, flora);
-    
+
     int x = 0; double y = 0;
-    
+
     stack_pop(&a, &x);
-    
+
     printf("__%d___", x);
-    
+
     stack_pop(&a, &x);
-    
+
     printf("__%d___\n", x);
-    
+
     stack_push(&b, 19);
     stack_push(&b, 20);
-    
+
     stack_pop(&b, &y);
-    
-    printf(ELEMENT_FMT(double), y);
-    
+
+    printf("%.2f\n", y);
+
     stack_pop(&b, &y);
-    
-    printf(ELEMENT_FMT(double), y);
+
+    printf("%.2f\n", y);
+
+
+    Stack_unsigned in = {};
+
+    stack_init(&in, 1);
+
+    stack_push(&in, 2234567890);
+
+    unsigned uns = 0;
+
+    stack_pop(&in, &uns);
+
+    printf("%u", uns);
+
+    stack_dtor(&a);
+    stack_dtor(&b);
+    stack_dtor(&in);
 }
-
-
-
-
-
