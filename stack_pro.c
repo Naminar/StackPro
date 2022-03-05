@@ -21,6 +21,7 @@ void *const ERR_PTR    = (void*) 1; // DATA
 const int ERR_RESIZE   = 0;
 //const int ERR_POP_SIZE = 0;
 
+
 #define FORMATE(type)               \
 typedef struct MAKE_NAME(Stack_, type){\
     size_t first_canary;            \
