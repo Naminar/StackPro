@@ -459,7 +459,7 @@ FORMATE(unsigned);
 MAKE_STACK(unsigned);
 
 
-
+/*
 int main(void)
 {
     Stack_int a = {};
@@ -511,4 +511,4 @@ int main(void)
     stack_dtor(&a);
     stack_dtor(&b);
     stack_dtor(&in);
-}
+}*/
