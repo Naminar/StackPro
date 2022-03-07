@@ -5,7 +5,7 @@
 #define MAKE_NAME(a, b) a##b
 
 #define ELEMENT_FMT(type)  \
-    _Generic(((type) 0),   \
+    _Generic( ((type) 0),   \
     int:      "%d",        \
     float:    "%f",        \
     double:   "%f",        \
@@ -462,53 +462,54 @@ MAKE_STACK(unsigned);
 /*
 int main(void)
 {
-    Stack_int a = {};
-    Stack_double b = {};
+    Stack_int stki = {};
+    Stack_double stkd = {};
+    Stack_float stkf = {};
+    
+    stack_init(&stki, 2);
+    stack_init(&stkd, 2);
 
-    Stack_float ff = {};
-    stack_init(&b, 2);
-    stack_init(&a, 2);
+    int number = 11;
+    int x = 0; 
+    double y = 0;
 
-    int flora = 11;
+    stack_push(&stki, 18);
+    stack_push(&stki, flora);
 
-    stack_push(&a, 18);
-    stack_push(&a, flora);
+    stack_pop(&stki, &x);
 
-    int x = 0; double y = 0;
+    printf("___%d___", x);
 
-    stack_pop(&a, &x);
-
-    printf("__%d___", x);
-
-    stack_pop(&a, &x);
+    stack_pop(&stki, &x);
 
     printf("__%d___\n", x);
 
-    stack_push(&b, 19);
-    stack_push(&b, 20);
+    stack_push(&stkd, 19);
+    stack_push(&stkd, 20);
 
-    stack_pop(&b, &y);
-
-    printf("%.2f\n", y);
-
-    stack_pop(&b, &y);
+    stack_pop(&stkd, &y);
 
     printf("%.2f\n", y);
 
+    stack_pop(&stkd, &y);
 
-    Stack_unsigned in = {};
+    printf("%.2f\n", y);
 
-    stack_init(&in, 1);
+    /////////////////////////
+    Stack_unsigned stku = {};
 
-    stack_push(&in, 2234567890);
+    stack_init(&stku, 1);
 
-    unsigned uns = 0;
+    stack_push(&stku, 2234567890);
 
-    stack_pop(&in, &uns);
+    unsigned un_num = 0;
 
-    printf("%u", uns);
+    stack_pop(&stku, &un_num);
 
-    stack_dtor(&a);
-    stack_dtor(&b);
-    stack_dtor(&in);
+    printf("%u", un_num);
+
+    stack_dtor(&stkd);
+    stack_dtor(&stkf);
+    stack_dtor(&stki);
+    stack_dtor(&stku);
 }*/
