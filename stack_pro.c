@@ -23,6 +23,7 @@
 const size_t CANARY = 19;
 const size_t CONTROL_DIMENS = 200;
 const size_t NULL_HASH = 0xdd233d4;
+const size_t WITH_CANARY_CONTROL_DIMENS = CONTROL_DIMENS + 2;
 
 //===============================================
 
