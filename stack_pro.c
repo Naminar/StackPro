@@ -503,7 +503,7 @@ MAKE_STACK(unsigned);
 
 
 
-    stack_init(&stki, 2, calloc(3, sizeof(int)));
+    stack_init(&stki, 2, calloc(4, sizeof(int)));
     stack_init(&stkd, 2, NULL);
 
     int number = 11;
