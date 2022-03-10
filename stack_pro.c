@@ -1,3 +1,8 @@
+
+#ifndef CPU_PRO_
+
+#define CPU_PRO_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -5,7 +10,7 @@
 #define MAKE_NAME(a, b) a##b
 
 #define ELEMENT_FMT(type)  \
-    _Generic(((type) 0),   \
+    _Generic( ((type) 0),  \
     int:      "%d",        \
     float:    "%f",        \
     double:   "%f",        \
@@ -13,14 +18,19 @@
     default:  "%f"         \
 )
 
-
+//===============================================
 
 const size_t CANARY = 19;
 const size_t CONTROL_DIMENS = 200;
 const size_t NULL_HASH = 0xdd233d4;
-void *const ERR_PTR    = (void*) 1; // DATA
+
+//===============================================
+
+void *const ERR_PTR    = (void*) 1;
 const int ERR_RESIZE   = 0;
 //const int ERR_POP_SIZE = 0;
+
+//===============================================
 
 #define FORMATE(type)               \
 typedef struct MAKE_NAME(Stack_, type){\
@@ -36,7 +46,7 @@ typedef struct MAKE_NAME(Stack_, type){\
 } MAKE_NAME(Stack_, type);          \
                                     \
 int stack_resize_##type (MAKE_NAME(Stack_, type)* stk);                                     \
-int stack_init_##type (MAKE_NAME(Stack_, type)* stk, int capacity);                         \
+int stack_init_##type (MAKE_NAME(Stack_, type)* stk, int capacity, void* stack_place);      \
 void stack_dtor_##type (MAKE_NAME(Stack_, type)* stk);                                      \
 int stack_push_##type (MAKE_NAME(Stack_, type)* stk, type element);                         \
 int stack_pop_##type (MAKE_NAME(Stack_, type)* stk, type* element);                         \
@@ -70,7 +80,7 @@ void DragonHash_##type (MAKE_NAME(Stack_, type)* stk);                          
 #define stack_pop(stk_ptr, ...)     \
     _Generic( ((*stk_ptr).data),    \
     int*: stack_pop_int,            \
-    float*: stack_pop_float,       \
+    float*: stack_pop_float,        \
     double*: stack_pop_double,      \
     unsigned*:stack_pop_unsigned,   \
     default: stack_pop_double       \
@@ -81,7 +91,7 @@ void DragonHash_##type (MAKE_NAME(Stack_, type)* stk);                          
 #define stack_resize(stk_ptr, ...)  \
     _Generic( ((*stk_ptr).data),    \
     int*: stack_resize_int,         \
-    float*: stack_resize_float,       \
+    float*: stack_resize_float,     \
     double*: stack_resize_double,   \
     unsigned*:stack_resize_unsigned,\
     default: stack_resize_int       \
@@ -112,7 +122,7 @@ void DragonHash_##type (MAKE_NAME(Stack_, type)* stk);                          
 #define is_stack_spoiled(stk_ptr, ...)  \
     _Generic( ((*stk_ptr).data),        \
     int*: is_stack_spoiled_int,         \
-    float*: is_stack_spoiled_float,       \
+    float*: is_stack_spoiled_float,     \
     double*: is_stack_spoiled_double,   \
     unsigned*:is_stack_spoiled_unsigned,\
     default: is_stack_spoiled_int       \
@@ -180,6 +190,13 @@ void DragonHash_##type (MAKE_NAME(Stack_, type)* stk)   \
                                                 \
             break;                              \
         }                                       \
+                                                \
+        default:                                \
+        {                                       \
+            stack_dump_##type(stk, -8, __LINE__, __FILE__, __PRETTY_FUNCTION__);\
+                                                \
+            break;                              \
+        }                                       \
     }                                           \
                                                 \
     size_t data_key = NULL_HASH;                \
@@ -189,6 +206,7 @@ void DragonHash_##type (MAKE_NAME(Stack_, type)* stk)   \
     for(size_t ind = 1; ind < (stk->capacity + 2) * size_converter_value ; ind++)   \
     {                                                                               \
         data_key = data_key << 3 + 1;                                               \
+                                                                                    \
         data_key = data_key ^ stack_data[ind] + data_key % 3 + stack_data[ind] + stack_data[ind - 1] | stack_data[ind];\
     }                                                                                           \
                                                                                                 \
@@ -295,6 +313,14 @@ void stack_dump_##type(MAKE_NAME(Stack_, type)* stk, int key, int line, const ch
             break;                                                                              \
         }                                                                                       \
                                                                                                 \
+        case -8:                                                                                \
+        {                                                                                       \
+            printf("ERROR IN CONSTRUCTING HASH. SHOUT AT SOMEONE!"                              \
+                   "AAAAAAAAAAAAAAAAAAA!");                                                     \
+                                                                                                \
+            break;                                                                              \
+        }                                                                                       \
+                                                                                                \
         default:                                                                                \
         {                                                                                       \
             printf("DUMP ERROR. I CANT BEAR IT. ABORTING... (no)");                             \
@@ -340,18 +366,24 @@ void stack_dump_##type(MAKE_NAME(Stack_, type)* stk, int key, int line, const ch
 }                                                                                               \
                                                                                                 \
                                                                                                 \
-int stack_init_##type(MAKE_NAME(Stack_, type)* stk, int capacity)                               \
+int stack_init_##type(MAKE_NAME(Stack_, type)* stk, int capacity, void* stack_place)            \
 {                                                                                               \
     assert(stk);                                                                                \
                                                                                                 \
-    if(capacity <= 0)                                                                           \
+    if (capacity <= 0)                                                                          \
     {                                                                                           \
         printf(" Your capacity is wrong, it must be positive.");                                \
                                                                                                 \
         return 0;/*exit(1);*/                                                                   \
     }                                                                                           \
                                                                                                 \
-    stk->data = (type*) calloc(capacity + 2, sizeof(type));                                     \
+    if (stack_place)                                                                            \
+        stk->data = (type*) stack_place;                                                        \
+    else                                                                                        \
+        stk->data = (type*) calloc(capacity + 2, sizeof(type));                                 \
+                                                                                                \
+    /*stk->data = (type*) calloc(capacity + 2, sizeof(type));*/                                 \
+                                                                                                \
     assert(stk->data);                                                                          \
                                                                                                 \
     stk->capacity = capacity;                                                                   \
@@ -445,6 +477,8 @@ int stack_push_##type(MAKE_NAME(Stack_, type)* stk, type element)           \
 
 
 
+
+
 //=======================================================================
 FORMATE(int);
 MAKE_STACK(int);
@@ -458,57 +492,62 @@ MAKE_STACK(double);
 FORMATE(unsigned);
 MAKE_STACK(unsigned);
 
+#endif
 
 
-int main(void)
+/*int main(void)
 {
-    Stack_int a = {};
-    Stack_double b = {};
+    Stack_int stki = {};
+    Stack_double stkd = {};
+    Stack_float stkf = {};
 
-    Stack_float ff = {};
-    stack_init(&b, 2);
-    stack_init(&a, 2);
 
-    int flora = 11;
 
-    stack_push(&a, 18);
-    stack_push(&a, flora);
+    stack_init(&stki, 2, calloc(3, sizeof(int)));
+    stack_init(&stkd, 2, NULL);
 
-    int x = 0; double y = 0;
+    int number = 11;
+    int x = 0;
+    double y = 0;
 
-    stack_pop(&a, &x);
+    stack_push(&stki, 18);
+    stack_push(&stki, number);
 
-    printf("__%d___", x);
+    stack_pop(&stki, &x);
 
-    stack_pop(&a, &x);
+    printf("___%d___", x);
+
+    stack_pop(&stki, &x);
 
     printf("__%d___\n", x);
 
-    stack_push(&b, 19);
-    stack_push(&b, 20);
+    stack_push(&stkd, 19);
+    stack_push(&stkd, 20);
 
-    stack_pop(&b, &y);
-
-    printf("%.2f\n", y);
-
-    stack_pop(&b, &y);
+    stack_pop(&stkd, &y);
 
     printf("%.2f\n", y);
 
+    stack_pop(&stkd, &y);
 
-    Stack_unsigned in = {};
+    printf("%.2f\n", y);
 
-    stack_init(&in, 1);
+    /////////////////////////
 
-    stack_push(&in, 2234567890);
+    Stack_unsigned stku = {};
 
-    unsigned uns = 0;
+    stack_init(&stku, 1, NULL);
 
-    stack_pop(&in, &uns);
+    stack_push(&stku, 2234567890);
 
-    printf("%u", uns);
+    unsigned un_num = 0;
 
-    stack_dtor(&a);
-    stack_dtor(&b);
-    stack_dtor(&in);
-}
+    stack_pop(&stku, &un_num);
+
+    printf("%u", un_num);
+
+    stack_dtor(&stkd);
+    stack_dtor(&stkf);
+    stack_dtor(&stki);
+    stack_dtor(&stku);
+}*/
